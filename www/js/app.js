@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 "use strict";
 
-angular.module('KNY', ['ionic'])
+angular.module('KNY', ['ionic', 'KNY.controllers'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -18,4 +18,16 @@ angular.module('KNY', ['ionic'])
       StatusBar.styleDefault();
     }
   });
-});
+})
+/*.config(function($stateProvider, $urlRouterProvider) {
+
+  $stateProvider
+  .state('base', {
+    url: '/',
+    templateUrl: 'templates/base.html',
+    controller: 'baseCtrl'
+  });
+
+  $urlRouterProvider.otherwise("/");
+
+})*/;
