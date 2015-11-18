@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 "use strict";
 
-angular.module('KNY', ['ionic', 'KNY.controllers'])
+angular.module('KNY', ['ionic', 'KNY.controllers', 'KNY.services'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -19,15 +19,63 @@ angular.module('KNY', ['ionic', 'KNY.controllers'])
     }
   });
 })
-/*.config(function($stateProvider, $urlRouterProvider) {
+.config(function($stateProvider, $urlRouterProvider) {
 
+  // Ionic uses AngularUI Router which uses the concept of states
+  // Learn more here: https://github.com/angular-ui/ui-router
+  // Set up the various states which the app can be in.
+  // Each state's controller can be found in controllers.js
   $stateProvider
-  .state('base', {
-    url: '/',
-    templateUrl: 'templates/base.html',
-    controller: 'baseCtrl'
+
+  // setup an abstract state for the tabs directive
+  .state('tab', {
+    url: '/tab',
+    abstract: true,
+    templateUrl: 'templates/tabs.html'
+  })
+
+  // Each tab has its own nav history stack:
+
+  .state('tab.bookmark', {
+    url: '/bookmark',
+    views: {
+      'tab-bookmark': {
+        templateUrl: 'templates/tab-bookmark.html',
+        controller: 'BookmarkCtrl'
+      }
+    }
+  })
+
+  .state('tab.savedplaces', {
+    url: '/savedplaces',
+    views: {
+      'tab-savedplaces': {
+        templateUrl: 'templates/tab-savedplaces.html',
+        controller: 'SavedPlacesCtrl'
+      }
+    }
+  })
+  .state('tab.place-detail', {
+    url: '/place/:placeId',
+    views: {
+      'tab-savedplaces': {
+        templateUrl: 'templates/place-detail.html',
+        controller: 'PlaceDetailCtrl'
+      }
+    }
+  })
+
+  .state('tab.connect', {
+    url: '/connect',
+    views: {
+      'tab-connect': {
+        templateUrl: 'templates/tab-connect.html',
+        controller: 'ConnectCtrl'
+      }
+    }
   });
 
-  $urlRouterProvider.otherwise("/");
+  // if none of the above states are matched, use this as the fallback
+  $urlRouterProvider.otherwise('/tab/bookmark');
 
-})*/;
+});
