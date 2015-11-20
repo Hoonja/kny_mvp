@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 "use strict";
 
-angular.module('KNY', ['ionic', 'KNY.controllers', 'KNY.services'])
+angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
 
 .run(function($ionicPlatform) {
   $ionicPlatform.ready(function() {
@@ -17,6 +17,7 @@ angular.module('KNY', ['ionic', 'KNY.controllers', 'KNY.services'])
     if(window.StatusBar) {
       StatusBar.styleDefault();
     }
+    console.log('[Event(device:deviceready)] Now you can use cordova plug-in.');
   });
 })
 .config(function($stateProvider, $urlRouterProvider) {
@@ -35,13 +36,21 @@ angular.module('KNY', ['ionic', 'KNY.controllers', 'KNY.services'])
   })
 
   // Each tab has its own nav history stack:
-
   .state('tab.bookmark', {
     url: '/bookmark',
     views: {
       'tab-bookmark': {
         templateUrl: 'templates/tab-bookmark.html',
         controller: 'BookmarkCtrl'
+      }
+    }
+  })
+  .state('tab.bookmark_insert', {
+    url: '/insert/:mode?lat&lng',
+    views: {
+      'tab-bookmark': {
+        templateUrl: 'templates/bookmark-insert.html',
+        controller: 'BookmarkInsertCtrl'
       }
     }
   })

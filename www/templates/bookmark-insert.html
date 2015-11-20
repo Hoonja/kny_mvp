@@ -1,0 +1,19 @@
+<ion-view title="Bookmark Here">
+  <ion-content class="padding">
+    <img id="bookmark-img" ng-src="#" style="width:100%;height:200px">
+    <label class="item item-input item-stacked-label">
+      <span class="input-label">MEMO</span>
+      <textarea placeholder="이 곳을 기억하기 위한 메모를 남겨 주세요"></textarea>
+    </label>
+
+    <button class="button button-block button-royal icon ion-ios-compose-outline">
+      Block Button
+    </button>
+
+    <ion-list>
+      <ion-item>mode : {{ mode }}</ion-item>
+      <ion-item>lat : {{ curRealPos.lat }}</ion-item>
+      <ion-item>lng : {{ curRealPos.lng }}</ion-item>
+    </ion-list>
+  </ion-content>
+</ion-view>

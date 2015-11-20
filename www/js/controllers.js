@@ -1,8 +1,7 @@
 "use strict";
 
+// 내용이 긴 컨트롤러는 따로 분리하고 나머지는 모두 이 파일에 모아둠
 angular.module('KNY.controllers', [])
-.controller('BookmarkCtrl', function($scope) {})
-
 .controller('SavedPlacesCtrl', function($scope, Chats) {
   // With the new view caching in Ionic, Controllers are only called
   // when they are recreated or on app start, instead of every page change.
@@ -25,5 +24,11 @@ angular.module('KNY.controllers', [])
 .controller('ConnectCtrl', function($scope) {
   $scope.settings = {
     enableFriends: true
+  };
+})
+
+.controller('ConfigCtrl', function($scope) {
+  $scope.settings = {
+    enableMonetize: true
   };
 });
