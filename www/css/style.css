@@ -9,3 +9,7 @@ body {
 .scroll {
   height: 100%;
 }
+
+textarea.ng-invalid {
+  border: 5px solid red;
+}

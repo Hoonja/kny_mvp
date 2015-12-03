@@ -22,7 +22,11 @@
     "cordova-plugin-statusbar",
     "ionic-plugin-keyboard",
     "cordova-plugin-geolocation",
-    "org.apache.cordova.camera"
+    "org.apache.cordova.camera",
+    {
+      "locator": "https://github.com/wymsee/cordova-imagePicker.git",
+      "id": "com.synconset.imagepicker"
+    }
   ],
   "cordovaPlatforms": [
     "ios",

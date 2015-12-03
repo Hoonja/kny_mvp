@@ -1,19 +1,28 @@
 <ion-view title="Bookmark Here">
   <ion-content class="padding">
-    <img id="bookmark-img" ng-src="#" style="width:100%;height:200px">
+    <img ng-show="contents_for_save.imgURI !== undefined" ng-src="{{ contents_for_save.imgURI }}" style="width:100%;height:200px">
+    <p>{{ contents_for_save.address }}</p>
     <label class="item item-input item-stacked-label">
       <span class="input-label">MEMO</span>
-      <textarea placeholder="이 곳을 기억하기 위한 메모를 남겨 주세요"></textarea>
+      <textarea ng-model="contents_for_save.memo" rows="4" placeholder="이 곳을 기억하기 위한 메모를 남겨 주세요" ></textarea>
+    </label>
+    <label class="item-input item-select">
+      <span class="input-label">
+        공개범위
+      </span>
+      <select>
+        <option ng-repeat="policy in policies" ng-selected="policy.selected">{{ policy.name }}</option>
+      </select>
     </label>
 
-    <button class="button button-block button-royal icon ion-ios-compose-outline">
-      Block Button
+    <button class="button button-block button-royal icon ion-ios-compose-outline" ng-click="savePlaceInfo()">
+      저장하기
     </button>
 
     <ion-list>
-      <ion-item>mode : {{ mode }}</ion-item>
-      <ion-item>lat : {{ curRealPos.lat }}</ion-item>
-      <ion-item>lng : {{ curRealPos.lng }}</ion-item>
+      <ion-item class="item-divider">디버깅용 정보</ion-item>
+      <ion-item>lat : {{ contents_for_save.curPos.lat }}</ion-item>
+      <ion-item>lng : {{ contents_for_save.curPos.lng }}</ion-item>
     </ion-list>
   </ion-content>
 </ion-view>
