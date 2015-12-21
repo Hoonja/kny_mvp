@@ -1,8 +1,8 @@
-<ion-view view-title="SavedPlace">
+<ion-view view-title="Saved Places">
   <ion-content>
     <ion-list>
       <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="place in places" type="item-text-wrap" ng-href="#/tab/place/{{place.id}}">
-        <img ng-src="{{place.imageURI}}">
+        <img ng-src="{{place.images[0]}}">
         <h2>{{place.name}}</h2>
         <p>{{place.memo}}</p>
         <i class="icon ion-chevron-right icon-accessory"></i>

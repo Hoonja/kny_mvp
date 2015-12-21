@@ -13,3 +13,25 @@ body {
 textarea.ng-invalid {
   border: 5px solid red;
 }
+
+.image-list-thumb {
+  padding: 2px 2px 2px 2px;
+  height: 250px;
+}
+
+.image-list-thumb-large {
+  padding: 4px 4px 4px 4px;
+  height: 450px;
+}
+
+.image-container {
+  overflow: scroll;
+  white-space: nowrap;
+  /* height: 250px;
+  min-height: 250px; */
+}
+
+.button-add-image {
+  height: 250px !important;
+  width: 100px !important;
+}

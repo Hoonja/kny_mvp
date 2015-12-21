@@ -1,9 +1,31 @@
 <ion-view view-title="Config">
   <ion-content>
     <ion-list>
-      <ion-toggle ng-model="settings.enableFriends">
-        Config Account
-      </ion-toggle>
+      <ion-item class="item-divider item-button-right">
+        DB Summary
+      </ion-item>
+      <button class="button button-full button-outline button-assertive  ion-ios-paper-outline" ng-click="getSummary()">
+        Load Info
+      </button>
+      <ion-list>
+        <ion-item>Places: {{places_cnt}}</ion-item>
+        <ion-item>Images: {{images_cnt}}</ion-item>
+      </ion-list>
+      <ion-item class="item-divider">
+        Table Manipulation
+      </ion-item>
+      <ion-item class="item-button-right">
+        Clear Tables
+        <button class="button button-assertive" ng-click="clearTables()">
+          <i class="icon ion-ios-color-wand"></i>
+        </button>
+      </ion-item>
+      <ion-item class="item-button-right">
+        Drop&Recreate Tables
+        <button class="button button-assertive" ng-click="recreateTables()">
+          <i class="icon ion-ios-trash-outline"></i>
+        </button>
+      </ion-item>
     </ion-list>
   </ion-content>
 </ion-view>

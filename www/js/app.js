@@ -7,7 +7,7 @@
 
 angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
 
-  .run(function($ionicPlatform, $cordovaSQLite, PlaceDB) {
+  .run(function($ionicPlatform, $rootScope, $cordovaSQLite, PlaceDB) {
     $ionicPlatform.ready(function() {
       // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
       // for form inputs)
@@ -24,32 +24,32 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
 
       /*if (ionic.Platform.isIOS() || ionic.Platform.isAndroid()) {
         PlaceDB.db = window.sqlitePlugin.openDatabase({name: 'KNY.db'});
-        console.debug('SQLite DB is created.');
+        console.log('SQLite DB is created.');
       } else {
         PlaceDB.db = window.openDatabase('KNY.db', '1.0', 'KNY Place DB', 1024 * 1024 * 5);
-        console.debug('WebSQL DB is created.');
+        console.log('WebSQL DB is created.');
       }*/
       //PlaceDB.init();
 
       // Only for Test: 테스트 전 테이블을 지우고 시작
-      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_DROP_PLACES).then(function () {
-        console.debug('DROP TABLE Places.');
+      /*$cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_DROP_PLACES).then(function () {
+        console.log('DROP TABLE Places.');
       }, function (err) {
         console.error('DROP TABLE Places : ' + err);
       });
       $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_DROP_IMAGES).then(function () {
-        console.debug('DROP TABLE Images.');
+        console.log('DROP TABLE Images.');
       }, function (err) {
         console.error('DROP TABLE Images : ' + err);
-      });
+      });*/
 
-      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_CREATE_PLACES).then(function () {
-        console.debug('Places table was successfuly created.');
+      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_PLACES_CREATE).then(function () {
+        console.log('Places table was successfuly created.');
       }, function (err) {
         console.error(err);
       });
-      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_CREATE_IMAGES).then(function () {
-        console.debug('Images table was successfuly created.');
+      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_IMAGES_CREATE).then(function () {
+        console.log('Images table was successfuly created.');
       }, function (err) {
         console.error(err);
       });
@@ -68,7 +68,7 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
             TestPlacesSet[i].lat,
             TestPlacesSet[i].lng
           ]).then(function () {
-            console.debug('A test data insert successed.');
+            console.log('A test data insert successed.');
             $cordovaSQLite.execute(PlaceDB.db, PlaceDB.SQL_SELECT_RECENT)
               .then(function(res){
                 var TestImage = TestImageList.pop();
@@ -78,7 +78,7 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
                     TestImage.image_dt
                   ])
                   .then(function() {
-                    console.debug('Insert image success.');
+                    console.log('Insert image success.');
                   }, function(err) {
                     console.error('Insert image failed.');
                     console.error(err);
@@ -92,6 +92,11 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
           });
         }
       })();*/
+
+      // 장소가 저장되었다는 알림 이벤트를 받으면, 적절히 목록을 갱신하도록 event를 broadcasting 한다
+      $rootScope.$on('refresh-in', function(event, args){
+        $rootScope.$broadcast('refresh-out', args);
+      });
     });
   })
   .config(function($stateProvider, $urlRouterProvider) {
@@ -106,6 +111,7 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
     .state('tab', {
       url: '/tab',
       abstract: true,
+      controller: 'TabCtrl',
       templateUrl: 'templates/tabs.html'
     })
 

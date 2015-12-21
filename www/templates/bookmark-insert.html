@@ -1,7 +1,18 @@
 <ion-view title="Bookmark Here">
   <ion-content class="padding">
-    <img ng-show="contents_for_save.imgURI !== undefined" ng-src="{{ contents_for_save.imgURI }}" style="width:100%;height:200px">
-    <p>{{ contents_for_save.address }}</p>
+    <ion-scroll direction="x" class="image-container">
+      <button class="button button-outline button-positive button-add-image icon ion-ios-plus-outline" ng-click="addImage()">
+      </button>
+      <img ng-repeat="image in images track by $index" class="image-list-thumb" ng-show="image !== undefined" ng-src="{{ image }}">
+    </ion-scroll>
+    <label class="item item-input">
+      <span class="input-label">Place</span>
+      <input type="text" ng-model="contents_for_save.name" placeholder="어디인가요?" ></input>
+    </label>
+    <label class="item item-input">
+      <span class="input-label">전화번호</span>
+      <input type="text" ng-model="contents_for_save.telephone_no" ></input>
+    </label>
     <label class="item item-input item-stacked-label">
       <span class="input-label">MEMO</span>
       <textarea ng-model="contents_for_save.memo" rows="4" placeholder="이 곳을 기억하기 위한 메모를 남겨 주세요" ></textarea>
@@ -10,8 +21,8 @@
       <span class="input-label">
         공개범위
       </span>
-      <select>
-        <option ng-repeat="policy in policies" ng-selected="policy.selected">{{ policy.name }}</option>
+      <select ng-model="selectedPolicy" ng-change="selectPolicy(selectedPolicy)">
+        <option ng-repeat="policy in policies" ng-selected="policy.selected" value="{{ policy.id }}">{{ policy.name }}</option>
       </select>
     </label>
 
@@ -21,6 +32,7 @@
 
     <ion-list>
       <ion-item class="item-divider">디버깅용 정보</ion-item>
+      <ion-item>address : {{ contents_for_save.address }}</ion-item>
       <ion-item>lat : {{ contents_for_save.curPos.lat }}</ion-item>
       <ion-item>lng : {{ contents_for_save.curPos.lng }}</ion-item>
     </ion-list>
