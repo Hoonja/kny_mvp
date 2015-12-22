@@ -22,15 +22,6 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
       }
       console.log('[Event(device:deviceready)] Now you can use cordova plug-in.');
 
-      /*if (ionic.Platform.isIOS() || ionic.Platform.isAndroid()) {
-        PlaceDB.db = window.sqlitePlugin.openDatabase({name: 'KNY.db'});
-        console.log('SQLite DB is created.');
-      } else {
-        PlaceDB.db = window.openDatabase('KNY.db', '1.0', 'KNY Place DB', 1024 * 1024 * 5);
-        console.log('WebSQL DB is created.');
-      }*/
-      //PlaceDB.init();
-
       // Only for Test: 테스트 전 테이블을 지우고 시작
       /*$cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_DROP_PLACES).then(function () {
         console.log('DROP TABLE Places.');

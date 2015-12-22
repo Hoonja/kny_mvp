@@ -26,6 +26,14 @@
           <i class="icon ion-ios-trash-outline"></i>
         </button>
       </ion-item>
+      <ion-item class="item-divider">
+        Image Path
+      </ion-item>
+      <button class="button button-full button-outline button-assertive  ion-ios-paper-outline" ng-click="getImagePaths()">
+        Get Image Paths
+      </button>
+      <ion-item>{{file_cnt}} images are exist.</ion-item>
+      <ion-item ng-repeat="path in paths" ng-click="showImages($index)">{{path}}</ion-item>
     </ion-list>
   </ion-content>
 </ion-view>

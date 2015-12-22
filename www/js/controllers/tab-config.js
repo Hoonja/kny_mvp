@@ -4,7 +4,9 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('ConfigCtrl', function($scope, $cordovaSQLite, PlaceDB) {
+  .controller('ConfigCtrl', function($scope, $ionicModal, $cordovaSQLite, PlaceDB) {
+    $scope.paths = [];
+    $scope.file_cnt = 0;
     $scope.getSummary = function() {
       $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_PLACES_SELECT_CNT)
         .then(function(res) {
@@ -67,4 +69,42 @@ angular.module('KNY.controllers')
           console.error('Dropping Places table is failed.' + JSON.stringify(err));
         });
     };
+
+    $scope.getImagePaths = function() {
+      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_IMAGES_SELECT_PATH)
+        .then(function(res) {
+          $scope.file_cnt = 0;
+          $scope.paths = [];
+          for(var i = 0; i < res.rows.length; i++) {
+            var inner_paths = JSON.parse(res.rows.item(i).imageURI);
+            for(var j = 0; j < inner_paths.length; j++) {
+              $scope.paths.push(inner_paths[j]);
+              $scope.file_cnt++;
+            }
+          }
+        }, function(err) {
+          console.error('Selecting imageURI is failed.' + JSON.stringify(err));
+        });
+
+      $scope.showImages = function(index) {
+        $scope.activeSlide = index;
+        $scope.showModal('templates/image-popover.html');
+      };
+
+      $scope.showModal = function(templateUrl) {
+        $ionicModal.fromTemplateUrl(templateUrl, {
+            scope : $scope,
+            animation : 'slide-in-up'
+          })
+          .then(function(modal) {
+            $scope.modal = modal;
+            $scope.modal.show();
+          });
+      };
+
+      $scope.closeModal = function() {
+        $scope.modal.hide();
+        $scope.modal.remove();
+      };
+    }
   });

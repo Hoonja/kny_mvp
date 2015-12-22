@@ -118,7 +118,9 @@ angular.module('KNY.services', [])
       SQL_IMAGES_SELECT_CNT:
         "SELECT COUNT(id) AS cnt FROM Images",
       SQL_IMAGES_DELETE_ALL:
-        "DELETE FROM Images"
+        "DELETE FROM Images",
+      SQL_IMAGES_SELECT_PATH:
+        "SELECT imageURI FROM Images"
     };
   })
 
