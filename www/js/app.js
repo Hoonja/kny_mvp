@@ -22,18 +22,6 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
       }
       console.log('[Event(device:deviceready)] Now you can use cordova plug-in.');
 
-      // Only for Test: 테스트 전 테이블을 지우고 시작
-      /*$cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_DROP_PLACES).then(function () {
-        console.log('DROP TABLE Places.');
-      }, function (err) {
-        console.error('DROP TABLE Places : ' + err);
-      });
-      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_DROP_IMAGES).then(function () {
-        console.log('DROP TABLE Images.');
-      }, function (err) {
-        console.error('DROP TABLE Images : ' + err);
-      });*/
-
       $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_PLACES_CREATE).then(function () {
         console.log('Places table was successfuly created.');
       }, function (err) {
@@ -44,45 +32,6 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
       }, function (err) {
         console.error(err);
       });
-
-      //test insert
-      /*(function() {
-        var TestImageList = [];
-        for(var i = 0; i < TestPlacesSet.length; i++) {
-          TestImageList.push(TestPlacesSet[i]);
-          $cordovaSQLite.execute(PlaceDB.db, PlaceDB.SQL_INSERT_PLACE, [
-            TestPlacesSet[i].name,
-            TestPlacesSet[i].address,
-            TestPlacesSet[i].telephon_no,
-            TestPlacesSet[i].create_dt,
-            TestPlacesSet[i].memo,
-            TestPlacesSet[i].lat,
-            TestPlacesSet[i].lng
-          ]).then(function () {
-            console.log('A test data insert successed.');
-            $cordovaSQLite.execute(PlaceDB.db, PlaceDB.SQL_SELECT_RECENT)
-              .then(function(res){
-                var TestImage = TestImageList.pop();
-                $cordovaSQLite.execute(PlaceDB.db, PlaceDB.SQL_INSERT_IMAGE, [
-                    res.rows[0].id,
-                    TestImage.imageURI,
-                    TestImage.image_dt
-                  ])
-                  .then(function() {
-                    console.log('Insert image success.');
-                  }, function(err) {
-                    console.error('Insert image failed.');
-                    console.error(err);
-                  });
-              }, function (err) {
-                console.error(err);
-              });
-          }, function (err) {
-            console.error('Test data 삽입 중 오류가 발생했습니다.');
-            console.error(err);
-          });
-        }
-      })();*/
 
       // 장소가 저장되었다는 알림 이벤트를 받으면, 적절히 목록을 갱신하도록 event를 broadcasting 한다
       $rootScope.$on('refresh-in', function(event, args){

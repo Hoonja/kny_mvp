@@ -4,7 +4,7 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('BookmarkInsertCtrl', function($scope, $state, $stateParams, $ionicPlatform, $cordovaCamera, $cordovaSQLite, $ionicHistory, $ionicActionSheet, PrivatePolicy, PlaceDB, CacheService, ImageService) {
+  .controller('BookmarkInsertCtrl', function($scope, $state, $stateParams, $cordovaCamera, $cordovaSQLite, $ionicActionSheet, PrivatePolicy, PlaceDB, CacheService, ImageService) {
     var _today = new Date();
     var _lat = parseFloat($stateParams.lat);
     var _lng = parseFloat($stateParams.lng);
@@ -20,20 +20,11 @@ angular.module('KNY.controllers')
       telephone_no: '010-1234-5678',
       address: '',
       memo: '',
-      // imgURI: TestPlacesSet[Math.floor(Math.random()*TestPlacesSet.length)].imageURI,
       imgURI: '',
       create_dt: _today
     };
 
     $scope.images = CacheService.images();
-
-    /*$scope.addImage = function() {
-      ImageService.handleMediaDialog($stateParams.mode)
-        .then(function() {
-          $scope.$apply();
-          console.log($scope.images);
-        });
-    }*/
 
     $scope.addImage = function() {
       // Show the action sheet

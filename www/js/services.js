@@ -89,7 +89,7 @@ angular.module('KNY.services', [])
       SQL_PLACES_SELECT_CNT:
         "SELECT COUNT(id) AS cnt FROM Places",
       SQL_PLACES_SELECT:
-        "SELECT p.id AS id, p.name AS name, p.memo AS memo, i.imageURI AS imageURI " +
+        "SELECT p.id AS id, p.name AS name, p.address AS address, p.memo AS memo, i.imageURI AS imageURI, p.lat AS lat, p.lng AS lng " +
         "FROM Places p INNER JOIN Images i ON p.id = i.place_id " +
         "ORDER BY p.id DESC LIMIT ?, ?",
       SQL_PLACES_SELECT_ONE:
@@ -257,15 +257,17 @@ angular.module('KNY.services', [])
 
     function getImages() {
       return images;
-    };
+    }
 
     function addImage(img) {
       images.push(img);
-    };
+      //$scope.$apply(function() {images.push(img);});
+    }
 
     function resetImage() {
       images = [];
-    };
+      //$scope.$apply(function(){images.push(img);});
+    }
 
     return {
       storeImage: addImage,
@@ -274,7 +276,8 @@ angular.module('KNY.services', [])
     };
   })
 
-  .factory('ImageService', function($cordovaCamera, CacheService, $q, $cordovaFile, TestPlacesSet){
+  .factory('ImageService', function($cordovaCamera, CacheService, $q, $cordovaFile, DaumMapService){
+    var MapService = DaumMapService;
 
     function makeid() {
       var text = '';
@@ -310,10 +313,7 @@ angular.module('KNY.services', [])
 
     function saveMedia(type) {
       return $q(function(resolve, reject) {
-        if (type == '2') {
-          CacheService.storeImage(TestPlacesSet[Math.floor(Math.random()*TestPlacesSet.length)].imageURI);
-          resolve();
-        } else {
+        if (type!='2'){
           var options = optionsForType(type);
 
           $cordovaCamera.getPicture(options)
@@ -323,19 +323,306 @@ angular.module('KNY.services', [])
               var newName = makeid() + name;
               $cordovaFile.copyFile(namePath, name, cordova.file.dataDirectory, newName)
                 .then(function (info) {
-                  console.log('FileName : ' + newName);
-                  console.log('dataDirectory : ' + cordova.file.dataDirectory);
+                  console.log('FilePath : ' + cordova.file.dataDirectory + newName);
                   CacheService.storeImage(cordova.file.dataDirectory + newName);
                   resolve();
                 }, function (e) {
                   reject();
                 });
             });
-        }
+        }else {
+          //CacheService.storeImage(TestPlacesSet[Math.floor(Math.random()*TestPlacesSet.length)].imageURI);
+              CacheService.storeImage(MapService.getMapImage());
+              resolve();
+          }
       });
     }
 
     return {
       handleMediaDialog: saveMedia
     }
+  })
+  .factory('MapService', function($ionicLoading) {
+    var curRealPos = {lat:0, lng:0};
+    var map;
+    var address;
+
+    function init(map_id, showBookmarkEntryUI) {
+      // 현재 위치 구하기
+      if (navigator.geolocation) {
+        $ionicLoading.show({
+          content: 'Getting current location...',
+          noBackdrop: true
+        });
+        navigator.geolocation.getCurrentPosition(function(position) {
+          curRealPos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
+          initMapSetting(map_id, showBookmarkEntryUI);
+        }, function() {
+          handleLocationError(true);
+          $ionicLoading.hide();
+
+          // 우리 집 좌표로 설정 -_-
+          curRealPos = {
+            lat: 37.389282,
+            lng: 127.094940
+          };
+          initMapSetting();
+        });
+
+      } else {
+        handleLocationError(false);  // Browser doesn't support Geolocation
+      }
+    }
+
+    function initMapSetting(map_id, showBookmarkEntryUI) {
+      var mapOptions = {
+        center: curRealPos,
+        zoom: 18,
+        mapTypeControlOptions: {
+          mapTypeIds: [
+            google.maps.MapTypeId.ROADMAP,
+            google.maps.MapTypeId.SATELLITE
+          ],
+          position: google.maps.ControlPosition.BOTTOM_LEFT
+        }
+      };
+      map = new google.maps.Map(document.getElementById(map_id), mapOptions);
+
+      map.setCenter(new google.maps.LatLng(curRealPos.lat, curRealPos.lng));
+      getAddress();
+      console.log('[SUCCESS] Real position is (' + curRealPos.lat + ', ' + curRealPos.lng + ').');
+      console.log(getMapImage()); // Test
+      $ionicLoading.hide();
+
+      var marker = new google.maps.Marker({
+        position: curRealPos,
+        map: map,
+        animation: google.maps.Animation.DROP,
+        draggable: true
+      });
+
+      // marker의 드래그 이벤트가 끝나면 센터를 재조정하고 위치 정보를 남긴다
+      google.maps.event.addListener(marker, 'dragend', function() {
+        var marker_pos = marker.getPosition();
+        map.setCenter(marker_pos);
+        setCurPosition(marker_pos);
+      });
+
+      // 마커를 터치하면 저장을 위한 액션시트 창이 열린다
+      google.maps.event.addListener(marker, 'click', showBookmarkEntryUI);
+
+      // 지도를 panning 할 때 그에 따라 마커의 위치를 바꾸어 센터에 자리하게 한다
+      google.maps.event.addListener(map, 'center_changed', function() {
+        var center = map.getCenter();
+        console.log('[Event(map:center_changed] The changed coordinate of map_center is ' + center + '.');
+        marker.setPosition(center);
+        setCurPosition(center);
+      });
+    }
+
+    function handleLocationError(browserHasGeolocation) {
+      alert(browserHasGeolocation ? 'Error: The Geolocation service failed.' : 'Error: Your browser doesn\'t support geolocation.');
+    }
+
+    function setCurPosition(pos) {
+      curRealPos.lat = pos.lat();
+      curRealPos.lng = pos.lng();
+      console.log('[Function] Current position is changed(' + pos + ').');
+    }
+
+    function getAddress() {
+      var geocoder = new google.maps.Geocoder;
+      console.log('curRealPos : ' + JSON.stringify(curRealPos));
+      geocoder.geocode({'location' : curRealPos}, function(results, status) {
+        if (status === google.maps.GeocoderStatus.OK) {
+          if (results[1]) {
+            address = results[1].formatted_address;
+            console.info('Current Address is ' + address + '.');
+          } else {
+            console.warn('Geocoder results are not found.');
+            address = status;
+          }
+        } else {
+          console.error('Geocoder failed due to: ' + status);
+          address = status;
+        }
+      });
+    }
+
+    function getMapImage() {
+      return "http://maps.google.com/maps/api/staticmap?sensor=false&center=" +
+        curRealPos.lat + "," + curRealPos.lng +
+        "&zoom="+map.getZoom()+"&size=512x512&scale=2&markers=color:green|label:X|" +
+        curRealPos.lat + ',' + curRealPos.lng + '&key=AIzaSyDkuFga8fr1c4PjzSAiHaBWo26zvQbtxB8';
+    }
+
+    return {
+      init: init,
+      getCurPosition: function() {return curRealPos;},
+      getAddress: function() {return address;},
+      getMapImage: getMapImage
+    };
+  })
+
+  .factory('DaumMapService', function($ionicLoading, $q) {
+    var curRealPos = {lat:0, lng:0};
+    var map;
+    var address;
+
+    function init(map_id, useBookmarkPin, showBookmarkEntryUI) {
+      return $q(function(resolve, reject) {
+        // 현재 위치 구하기
+        if (navigator.geolocation) {
+          $ionicLoading.show({
+            content: 'Getting current location...',
+            noBackdrop: true
+          });
+          navigator.geolocation.getCurrentPosition(function(position) {
+            curRealPos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            console.info('Current position is (' + curRealPos.lat + ', ' + curRealPos.lng + ').');
+            initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI);
+            resolve();
+          }, function() {
+            handleLocationError(true);
+            $ionicLoading.hide();
+
+            // 우리 집 좌표로 설정 -_-
+            curRealPos = {
+              lat: 37.389282,
+              lng: 127.094940
+            };
+            initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI);
+            resolve();
+          });
+        } else {
+          handleLocationError(false);  // Browser doesn't support Geolocation
+          reject();
+        }
+      });
+    }
+
+    function initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI) {
+      var mapOptions = {
+        center: new daum.maps.LatLng(curRealPos.lat, curRealPos.lng),
+        level: 3
+      };
+      map = new daum.maps.Map(document.getElementById(map_id), mapOptions);
+      getAddress();
+      $ionicLoading.hide();
+
+      if (useBookmarkPin == true) {
+        var marker = new daum.maps.Marker({
+          position: new daum.maps.LatLng(curRealPos.lat, curRealPos.lng),
+          map: map,
+          clickable: true,
+          draggable: true
+        });
+
+        // marker의 드래그 이벤트가 끝나면 센터를 재조정하고 위치 정보를 남긴다
+        daum.maps.event.addListener(marker, 'dragend', function () {
+          var marker_pos = marker.getPosition();
+          map.setCenter(marker_pos);
+          setCurPosition(marker_pos);
+        });
+
+        // 마커를 터치하면 저장을 위한 액션시트 창이 열린다
+        daum.maps.event.addListener(marker, 'click', showBookmarkEntryUI);
+
+        // 지도를 panning 할 때 그에 따라 마커의 위치를 바꾸어 센터에 자리하게 한다
+        daum.maps.event.addListener(map, 'center_changed', function () {
+          var center = map.getCenter();
+          console.log('[Event(map:center_changed] The changed coordinate of map_center is ' + center + '.');
+          marker.setPosition(center);
+          setCurPosition(center);
+        });
+      }
+    }
+
+    function handleLocationError(browserHasGeolocation) {
+      alert(browserHasGeolocation ? 'Error: The Geolocation service failed.' : 'Error: Your browser doesn\'t support geolocation.');
+    }
+
+    function setCurPosition(pos) {
+      curRealPos.lat = pos.getLat();
+      curRealPos.lng = pos.getLng();
+      console.log('[Function] Current position is changed(' + pos + ').');
+    }
+
+    function getAddress() {
+      var geocoder = new daum.maps.services.Geocoder();
+      geocoder.coord2addr(
+        new daum.maps.LatLng(curRealPos.lat, curRealPos.lng),
+        function(status, result) {
+          if (status === daum.maps.services.Status.OK) {
+            if (result[0]) {
+              address = result[0].fullName;
+              console.info('Current Address is ' + address + '.');
+            } else {
+              console.warn('Geocoder results are not found.');
+              address = status;
+            }
+          } else {
+            console.error('Geocoder failed due to: ' + status);
+            address = status;
+          }
+        });
+    }
+
+    function getMapImage() {
+      return "http://maps.google.com/maps/api/staticmap?sensor=false&center=" +
+        curRealPos.lat + "," + curRealPos.lng +
+        "&zoom=16&size=512x512&scale=2&markers=color:green|label:X|" +
+        curRealPos.lat + ',' + curRealPos.lng + '&key=AIzaSyDkuFga8fr1c4PjzSAiHaBWo26zvQbtxB8';
+    }
+
+    function addMarker(lat, lng, title, id) {
+      var imageSrc = "http://i1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
+      var imageSize = new daum.maps.Size(24, 35);
+      var markerImage = new daum.maps.MarkerImage(imageSrc, imageSize);
+
+      var markerPosition = new daum.maps.LatLng(lat, lng);
+
+      var marker = new daum.maps.Marker({
+        position: markerPosition,
+        map: map,
+        draggable: false,
+        image: markerImage,
+        title: title
+      });
+
+      //daum.maps.event.addListener(marker, 'click', showDetailEntryUI);
+
+      // info window 등록
+      var iwContent = '<div style="padding:5px;">' + title + '<br>'
+      + '<a href="#/tab/place/' + id + '">상세보기</a> </div>';
+      var iw = new daum.maps.InfoWindow({
+        content: iwContent,
+        removable: true
+      });
+      daum.maps.event.addListener(marker, 'click', function() {
+        iw.open(map, marker);
+      });
+
+
+      return marker;
+    }
+
+    function deleteMarker(marker) {
+      marker.setMap(null);
+    }
+
+    return {
+      init: init,
+      getCurPosition: function() {return curRealPos;},
+      getAddress: function() {return address;},
+      getMapImage: getMapImage,
+      addMarker: addMarker,
+      deleteMarker: deleteMarker
+    };
   });

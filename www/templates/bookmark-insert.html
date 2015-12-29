@@ -26,9 +26,14 @@
       </select>
     </label>
 
-    <button class="button button-block button-royal icon ion-ios-compose-outline" ng-click="savePlaceInfo()">
-      저장하기
-    </button>
+    <div class="button-bar">
+      <button class="button button-royal icon ion-ios-compose-outline" ng-click="savePlaceInfo()">
+        저장하기
+      </button>
+      <button class="button button-assertive button-outline icon ion-ios-compose-outline" ng-click="closeBookmarkInsertDlg()">
+        취소
+      </button>
+    </div>
 
     <ion-list>
       <ion-item class="item-divider">디버깅용 정보</ion-item>

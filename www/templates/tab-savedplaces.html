@@ -1,6 +1,15 @@
 <ion-view view-title="Saved Places">
-  <ion-content>
-    <ion-list>
+  <div class="bar bar-subheader">
+    <div class="button-bar">
+      <button class="button button-outline button-royal icon-left icon ion-ios-world-outline" ng-click="addMarker()">Map</button>
+      <button class="button button-royal icon-left icon ion-ios-list-outline">List</button>
+    </div>
+  </div>
+  <ion-content class="has-subheader">
+    <ion-content class="padding">
+      <div id="savedMap" style="width:100%;height:100%" data-tap-disabled="true"></div>
+    </ion-content>
+    <!--<ion-list>
       <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="place in places" type="item-text-wrap" ng-href="#/tab/place/{{place.id}}">
         <img ng-src="{{place.images[0]}}">
         <h2>{{place.name}}</h2>
@@ -11,6 +20,6 @@
           Delete
         </ion-option-button>
       </ion-item>
-    </ion-list>
+    </ion-list>-->
   </ion-content>
 </ion-view>

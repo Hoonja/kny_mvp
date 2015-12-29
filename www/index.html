@@ -5,7 +5,7 @@
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
     <!--<meta http-equiv="Content-Security-Policy" content="default-src *; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'">-->
     <!--<meta http-equiv="Content-Security-Policy" content="script-src 'self' http://maps.googleapis.com/ http://maps.gstatic.com/ http://mts0.googleapis.com/ 'unsafe-inline' 'unsafe-eval'">-->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' http://localhost:*/ http://*.googleapis.com/ http://*.gstatic.com/ 'unsafe-inline' 'unsafe-eval'">
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' http://localhost:*/ http://*.googleapis.com/ http://*.gstatic.com/ http://apis.daum.net/ http://s1.daumcdn.net/ 'unsafe-inline' 'unsafe-eval'">
     <title></title>
 
     <link href="lib/ionic/css/ionic.css" rel="stylesheet">
@@ -33,7 +33,10 @@
     <script src="js/controllers/place-detail.js"></script>
     <script src="js/controllers/tab-config.js"></script>
     <script src="js/services.js"></script>
-    <script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyClCXQwUOTcCt_pQU1DD_5J3qcBlX9hIVM"></script>
+    <!--<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyClCXQwUOTcCt_pQU1DD_5J3qcBlX9hIVM"></script>-->
+    <!--<script src="http://maps.googleapis.com/maps/api/js?key=AIzaSyDkuFga8fr1c4PjzSAiHaBWo26zvQbtxB8"></script>-->
+    <!--<script type="text/javascript" src="http://apis.daum.net/maps/maps3.js?apikey=f4e2c3f6c532baf54ec80e81f08fc1a1"></script>-->
+    <script type="text/javascript" src="http://apis.daum.net/maps/maps3.js?apikey=f4e2c3f6c532baf54ec80e81f08fc1a1&libraries=services"></script>
 
   </head>
   <body ng-app="KNY">

@@ -4,7 +4,7 @@
   The FriendsCtrl pulls data from the Friends service (service.js)
   The Friends service returns an array of friend data
 -->
-<ion-view view-title="{{chat.name}}">
+<ion-view view-title="{{place.name}}">
   <ion-content class="padding">
     <div class="list card">
       <div class="item item-avatar">
@@ -15,7 +15,7 @@
 
       <div class="item item-body">
         <ion-scroll direction="x" class="image-container">
-          <img ng-repeat="image in place.images" class="image-list-thumb-large" src="{{image}}">
+          <img ng-repeat="image in place.images" class="image-list-thumb" ng-src="{{image}}" ng-click="showImages($index)">
         </ion-scroll>
         <p>
           {{ place.memo }}

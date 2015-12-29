@@ -4,98 +4,8 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('BookmarkCtrl', function($scope, $ionicLoading, $ionicActionSheet, $state, ImageService) {
-    function initialize() {
-      // 현재 위치 구하기
-      if (navigator.geolocation) {
-        $ionicLoading.show({
-          content: 'Getting current location...',
-          noBackdrop: true
-        });
-        navigator.geolocation.getCurrentPosition(function(position) {
-          $scope.curRealPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          $scope.initMapSetting();
-
-        }, function() {
-          $scope.handleLocationError(true);
-          $ionicLoading.hide();
-
-          // 우리 집 좌표로 설정 -_-
-          $scope.curRealPos = {
-            lat: 37.389282,
-            lng: 127.094940
-          };
-          $scope.initMapSetting();
-        });
-
-      } else {
-        // Browser doesn't support Geolocation
-        $scope.handleLocationError(false);
-      }
-    }
-
-    $scope.initMapSetting = function() {
-      var mapOptions = {
-        center: $scope.curRealPos,
-        zoom: 18,
-        mapTypeControlOptions: {
-          mapTypeIds: [
-            google.maps.MapTypeId.ROADMAP,
-            google.maps.MapTypeId.SATELLITE
-          ],
-          position: google.maps.ControlPosition.BOTTOM_LEFT
-        }
-      };
-      $scope.map = new google.maps.Map(document.getElementById("myMap"), mapOptions);
-
-      $scope.map.setCenter(new google.maps.LatLng($scope.curRealPos.lat, $scope.curRealPos.lng));
-      console.log('[SUCCESS] Real position is (' + $scope.curRealPos.lat + ', ' + $scope.curRealPos.lng + ').');
-      $ionicLoading.hide();
-
-      google.maps.event.addListenerOnce($scope.map, 'idle', function() {
-        $scope.marker = new google.maps.Marker({
-          position: $scope.curRealPos,
-          map: $scope.map,
-          animation: google.maps.Animation.DROP,
-          draggable: true
-        });
-
-        // marker의 드래그 이벤트가 끝나면 센터를 재조정하고 위치 정보를 남긴다
-        google.maps.event.addListener($scope.marker, 'dragend', function() {
-          var marker_pos = $scope.marker.getPosition();
-          console.log('[Event(marker:dragend)]: last position is ' + marker_pos + '.');
-          $scope.map.setCenter(marker_pos);
-          $scope.setCurPosition(marker_pos);
-        });
-
-        // 마커를 터치하면 저장을 위한 액션시트 창이 열린다
-        google.maps.event.addListener($scope.marker, 'click', function() {
-          $scope.showBookmarkEntryUI();
-        });
-
-        // 지도를 panning 할 때 그에 따라 마커의 위치를 바꾸어 센터에 자리하게 한다
-        google.maps.event.addListener($scope.map, 'center_changed', function() {
-          var center = $scope.map.getCenter();
-          console.log('[Event(map:center_changed] The changed coordinate of map_center is ' + center + '.');
-          $scope.marker.setPosition(center);
-          $scope.setCurPosition(center);
-        });
-      });
-    };
-
-    $scope.handleLocationError = function(browserHasGeolocation) {
-      alert(browserHasGeolocation ? 'Error: The Geolocation service failed.' : 'Error: Your browser doesn\'t support geolocation.');
-    };
-
-    $scope.setCurPosition = function(pos) {
-      $scope.curRealPos.lat = pos.lat();
-      $scope.curRealPos.lng = pos.lng();
-      console.log('[Function] Current position is changed(' + pos + ').');
-    };
-
+  .controller('BookmarkCtrl', function($scope, $ionicPlatform, $ionicActionSheet, $ionicModal, $cordovaCamera, $cordovaSQLite, PrivatePolicy, PlaceDB, CacheService, ImageService, DaumMapService) {
+    var MapService = DaumMapService;
     $scope.showBookmarkEntryUI = function() {
       // Show the action sheet
       $ionicActionSheet.show({
@@ -114,8 +24,7 @@ angular.module('KNY.controllers')
           // index : 0(camera), 1(library), 2(direct)
           ImageService.handleMediaDialog('' + index)
             .then(function() {
-              console.log($scope.images);
-              $state.go('tab.bookmark_insert', {mode: '' + index, lat: $scope.curRealPos.lat, lng: $scope.curRealPos.lng} );
+              $scope.showBookmarkInsertDlg();
             });
 
           return true;
@@ -123,5 +32,112 @@ angular.module('KNY.controllers')
       });
     };
 
-    google.maps.event.addDomListener(window, 'load', initialize);
+    $scope.showBookmarkInsertDlg = function() {
+      $ionicModal.fromTemplateUrl('templates/bookmark-insert.html', {
+          scope : $scope,
+          focusFirstInput: true,
+          animation : 'slide-in-up'
+        })
+        .then(function(modal) {
+          var _today = new Date();
+          $scope.policies = PrivatePolicy.all();
+          $scope.contents_for_save = {
+            name: '',
+            address: MapService.getAddress(),
+            telephone_no: '010-1234-5678',
+            memo: '',
+            imgURI: '',
+            curPos: {
+              lat: MapService.getCurPosition().lat,
+              lng: MapService.getCurPosition().lng
+            },
+            create_dt: _today
+          };
+
+          $scope.images = CacheService.images();
+
+          $scope.modal = modal;
+          $scope.modal.show();
+        });
+    };
+
+    $scope.closeBookmarkInsertDlg = function() {
+      $scope.modal.hide();
+      $scope.modal.remove();
+      CacheService.resetImage();
+    };
+
+    $scope.addImage = function() {
+      // Show the action sheet
+      $ionicActionSheet.show({
+        buttons: [
+          { text: '카메라로 찍기' },
+          { text: '사진 앨범에서 선택' },
+          { text: '무작위 이미지 추가(테스트용)' }
+        ],
+        titleText: '사진을 추가 합니다.',
+        cancelText: 'Cancel',
+        cancel: function() {
+          // add cancel code..
+        },
+        buttonClicked: function(index) {
+          console.log('[Event(ActionSheet:click)]Button['+ index + '] is clicked.');
+          // index : 0(camera), 1(library), 2(direct)
+          ImageService.handleMediaDialog('' + index)
+            .then(function() {
+              console.log($scope.images);
+            });
+
+          return true;
+        }
+      });
+    };
+
+    $scope.selectPolicy = function(selectedPolicy) {
+      PrivatePolicy.select(selectedPolicy);
+      console.log("Selected policy : " + selectedPolicy);
+    }
+
+    $scope.savePlaceInfo = function() {
+      $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_PLACES_INSERT, [
+        $scope.contents_for_save.name,
+        $scope.contents_for_save.address,
+        $scope.contents_for_save.telephone_no,
+        $scope.contents_for_save.create_dt,
+        $scope.contents_for_save.memo,
+        PrivatePolicy.getSelected().id,
+        $scope.contents_for_save.curPos.lat,
+        $scope.contents_for_save.curPos.lng
+      ]).then(function () {
+        console.log('Inserting to Places was successed!');
+        $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_PLACES_SELECT_RECENT)
+          .then(function(res){
+            var place_id = res.rows.item(0).id;
+            $cordovaSQLite.execute(PlaceDB.getDB(), PlaceDB.SQL_IMAGES_INSERT, [
+                place_id,
+                JSON.stringify($scope.images),
+                $scope.contents_for_save.create_dt
+              ])
+              .then(function() {
+                console.log('Insert image success.');
+                $scope.$emit('refresh-in');
+              }, function(err) {
+                console.error('Inserting an image failed : ' + JSON.stringify(err));
+              });
+          }, function (err) {
+            console.error('Selecting recent place is failed : ' + JSON.stringify(err));
+          });
+      }, function (err) {
+        console.error('Inserting a place is failed : ' + JSON.stringify(err));
+        alert('저장 중 오류가 발생했습니다.');
+      })
+        .then(function() {
+          alert('저장했습니다.^^');
+          $scope.closeBookmarkInsertDlg();
+        });
+    }
+
+    $ionicPlatform.ready(function() {
+      MapService.init('myMap', true, $scope.showBookmarkEntryUI);
+    });
   });
