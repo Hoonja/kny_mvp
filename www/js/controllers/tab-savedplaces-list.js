@@ -1,12 +1,10 @@
 /**
- * Created by hoonja on 2015. 11. 19..
+ * Created by hoonja on 2016. 01. 04..
  */
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('SavedPlacesCtrl', function($scope, $ionicPlatform, $stateParams, $cordovaSQLite, $ionicActionSheet, PlaceDB, DaumMapService) {
-    var MapService = DaumMapService;
-
+  .controller('SavedPlacesListCtrl', function($scope, $ionicPlatform, $cordovaSQLite, PlaceDB) {
     $scope.load = function() {
       $scope.places = [];
 
@@ -30,9 +28,6 @@ angular.module('KNY.controllers')
         }, function(err) {
           console.error('장소 데이터 목록을 불러오는데 실패했습니다.');
           console.error(err);
-        })
-        .then(function() {
-          $scope.addMarker();
         });
     };
 
@@ -44,20 +39,7 @@ angular.module('KNY.controllers')
       $scope.load();
     });
 
-    $scope.addMarker = function() {
-      for(var i = 0; i < $scope.places.length; i++) {
-        MapService.addMarker('savedMap', $scope.places[i].lat, $scope.places[i].lng, $scope.places[i].name, $scope.places[i].address, $scope.places[i].id);
-      }
-    };
-
-    $scope.relayout = function() {
-      MapService.relayout('savedMap');
-    };
-
     $ionicPlatform.ready(function() {
-      MapService.init('savedMap', false, null)
-        .then(function(){
-          $scope.load();
-        })
+      $scope.load();
     });
   });

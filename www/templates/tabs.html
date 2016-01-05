@@ -1,19 +1,19 @@
 <!-- <ion-tabs class="tabs-icon-top tabs-color-active-positive"> -->
-<ion-tabs class="tabs-stable" ng-class="{'tabs-positive': platform == 'android', 'tabs-icon-top': platform != 'android'}">
+<ion-tabs class="tabs-stable">
 
-  <!-- Dashboard Tab -->
-  <ion-tab title="Bookmark" icon-off="ion-ios-bookmarks-outline" icon-on="ion-ios-bookmarks" href="#/tab/bookmark">
+  <!-- Bookmark Tab -->
+  <ion-tab title="Bookmark" icon-off="ion-ios-bookmarks-outline" icon-on="ion-ios-bookmarks" href="#/tab/bookmark" on-select="onBookmarkTabSelected()">
     <ion-nav-view name="tab-bookmark"></ion-nav-view>
   </ion-tab>
 
-  <!-- Chats Tab -->
-  <ion-tab title="SavedPlaces" icon-off="ion-ios-location-outline" icon-on="ion-ios-location" href="#/tab/savedplaces">
+  <!-- SavedPlaces Tab -->
+  <ion-tab title="SavedPlaces" icon-off="ion-ios-location-outline" icon-on="ion-ios-location" href="#/tab/savedplaces" on-select="onSavedPlacesTabSelected()">
     <ion-nav-view name="tab-savedplaces"></ion-nav-view>
   </ion-tab>
 
-  <!-- Connect Tab -->
-  <ion-tab title="Connect" icon-off="ion-ios-albums-outline" icon-on="ion-ios-albums" href="#/tab/connect">
-    <ion-nav-view name="tab-connect"></ion-nav-view>
+  <!-- SavedPlaces_list Tab -->
+  <ion-tab title="List" icon-off="ion-ios-list-outline" icon-on="ion-ios-list" href="#/tab/savedlist">
+    <ion-nav-view name="tab-savedlist"></ion-nav-view>
   </ion-tab>
 
   <!-- Config Tab -->

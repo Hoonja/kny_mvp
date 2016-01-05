@@ -137,6 +137,18 @@ angular.module('KNY.controllers')
         });
     }
 
+    $scope.relayout = function() {
+      MapService.relayout('myMap');
+    };
+
+    $scope.$on('$stateChangeSuccess', function() {
+      // MapService.relayout();
+    });
+
+    $scope.setCenter = function() {
+      MapService.setCenterToCurPosition('myMap');
+    }
+
     $ionicPlatform.ready(function() {
       MapService.init('myMap', true, $scope.showBookmarkEntryUI);
     });

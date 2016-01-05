@@ -34,12 +34,14 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
       });
 
       // 장소가 저장되었다는 알림 이벤트를 받으면, 적절히 목록을 갱신하도록 event를 broadcasting 한다
-      $rootScope.$on('refresh-in', function(event, args){
-        $rootScope.$broadcast('refresh-out', args);
-      });
+      //$rootScope.$on('refresh-in', function(event, args){
+      //  $rootScope.$broadcast('refresh-out', args);
+      //});
     });
   })
-  .config(function($stateProvider, $urlRouterProvider) {
+  .config(function($ionicConfigProvider, $stateProvider, $urlRouterProvider) {
+    $ionicConfigProvider.views.maxCache(5);
+    $ionicConfigProvider.tabs.position('bottom');
 
     // Ionic uses AngularUI Router which uses the concept of states
     // Learn more here: https://github.com/angular-ui/ui-router
@@ -84,6 +86,17 @@ angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
         }
       }
     })
+
+    .state('tab.savedlist', {
+      url: '/savedlist',
+      views: {
+        'tab-savedlist': {
+          templateUrl: 'templates/tab-savedplaces-list.html',
+          controller: 'SavedPlacesListCtrl'
+        }
+      }
+    })
+
     .state('tab.place-detail', {
       url: '/place/:placeId',
       views: {

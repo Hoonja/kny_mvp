@@ -120,7 +120,7 @@ angular.module('KNY.services', [])
       SQL_IMAGES_DELETE_ALL:
         "DELETE FROM Images",
       SQL_IMAGES_SELECT_PATH:
-        "SELECT imageURI FROM Images"
+        "SELECT imageURI FROM Images ORDER BY id DESC"
     };
   })
 
@@ -469,7 +469,8 @@ angular.module('KNY.services', [])
 
   .factory('DaumMapService', function($ionicLoading, $q) {
     var curRealPos = {lat:0, lng:0};
-    var map;
+    var orgRealPos = {lat:0, lng:0};
+    var map = {};
     var address;
 
     function init(map_id, useBookmarkPin, showBookmarkEntryUI) {
@@ -485,17 +486,25 @@ angular.module('KNY.services', [])
               lat: position.coords.latitude,
               lng: position.coords.longitude
             };
-            console.info('Current position is (' + curRealPos.lat + ', ' + curRealPos.lng + ').');
+            orgRealPos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            console.info('Original position is (' + orgRealPos.lat + ', ' + orgRealPos.lng + ').');
             initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI);
             resolve();
           }, function() {
             handleLocationError(true);
             $ionicLoading.hide();
 
-            // 우리 집 좌표로 설정 -_-
+            // 우리 사무실 좌표로 설정 -_-
             curRealPos = {
-              lat: 37.389282,
-              lng: 127.094940
+              lat: 37.403425,
+              lng: 127.105783
+            };
+            orgRealPos = {
+              lat: 37.403425,
+              lng: 127.105783
             };
             initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI);
             resolve();
@@ -512,14 +521,14 @@ angular.module('KNY.services', [])
         center: new daum.maps.LatLng(curRealPos.lat, curRealPos.lng),
         level: 3
       };
-      map = new daum.maps.Map(document.getElementById(map_id), mapOptions);
+      map[map_id] = new daum.maps.Map(document.getElementById(map_id), mapOptions);
       getAddress();
       $ionicLoading.hide();
 
       if (useBookmarkPin == true) {
         var marker = new daum.maps.Marker({
           position: new daum.maps.LatLng(curRealPos.lat, curRealPos.lng),
-          map: map,
+          map: map[map_id],
           clickable: true,
           draggable: true
         });
@@ -527,7 +536,7 @@ angular.module('KNY.services', [])
         // marker의 드래그 이벤트가 끝나면 센터를 재조정하고 위치 정보를 남긴다
         daum.maps.event.addListener(marker, 'dragend', function () {
           var marker_pos = marker.getPosition();
-          map.setCenter(marker_pos);
+          map[map_id].setCenter(marker_pos);
           setCurPosition(marker_pos);
         });
 
@@ -535,8 +544,15 @@ angular.module('KNY.services', [])
         daum.maps.event.addListener(marker, 'click', showBookmarkEntryUI);
 
         // 지도를 panning 할 때 그에 따라 마커의 위치를 바꾸어 센터에 자리하게 한다
-        daum.maps.event.addListener(map, 'center_changed', function () {
-          var center = map.getCenter();
+        //daum.maps.event.addListener(map, 'center_changed', function () {
+        daum.maps.event.addListener(map[map_id], 'dragend', function () {
+          var center = map[map_id].getCenter();
+          console.log('[Event(map:dragend] The changed coordinate of map_center is ' + center + '.');
+          marker.setPosition(center);
+          setCurPosition(center);
+        });
+        daum.maps.event.addListener(map[map_id], 'center_changed', function () {
+          var center = map[map_id].getCenter();
           console.log('[Event(map:center_changed] The changed coordinate of map_center is ' + center + '.');
           marker.setPosition(center);
           setCurPosition(center);
@@ -551,6 +567,7 @@ angular.module('KNY.services', [])
     function setCurPosition(pos) {
       curRealPos.lat = pos.getLat();
       curRealPos.lng = pos.getLng();
+      getAddress();
       console.log('[Function] Current position is changed(' + pos + ').');
     }
 
@@ -581,7 +598,7 @@ angular.module('KNY.services', [])
         curRealPos.lat + ',' + curRealPos.lng + '&key=AIzaSyDkuFga8fr1c4PjzSAiHaBWo26zvQbtxB8';
     }
 
-    function addMarker(lat, lng, title, id) {
+    function addMarker(map_id, lat, lng, title, address, id) {
       var imageSrc = "http://i1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
       var imageSize = new daum.maps.Size(24, 35);
       var markerImage = new daum.maps.MarkerImage(imageSrc, imageSize);
@@ -590,23 +607,22 @@ angular.module('KNY.services', [])
 
       var marker = new daum.maps.Marker({
         position: markerPosition,
-        map: map,
+        map: map[map_id],
         draggable: false,
         image: markerImage,
         title: title
       });
 
-      //daum.maps.event.addListener(marker, 'click', showDetailEntryUI);
-
       // info window 등록
-      var iwContent = '<div style="padding:5px;">' + title + '<br>'
-      + '<a href="#/tab/place/' + id + '">상세보기</a> </div>';
+      var iwContent = '<div style="padding:5px;">'
+        + '<h3>' + title + '</h3><h5>' + address + '</h5>'
+        + '<a href="#/tab/place/' + id + '">상세보기</a> </div>';
       var iw = new daum.maps.InfoWindow({
         content: iwContent,
         removable: true
       });
       daum.maps.event.addListener(marker, 'click', function() {
-        iw.open(map, marker);
+        iw.open(map[map_id], marker);
       });
 
 
@@ -617,12 +633,29 @@ angular.module('KNY.services', [])
       marker.setMap(null);
     }
 
+    function relayout(map_id) {
+      if (map[map_id] !== undefined) {
+        console.debug('map.relayout is called.');
+        map[map_id].relayout();
+      } else {
+        console.debug('map.relayout is called, but map object is undefined.');
+      }
+    }
+
+    function setCenter(map_id) {
+      console.log('setCenter map_id: ' + map_id);
+      console.log('setCenter : ' + map[map_id]);
+      map[map_id].setCenter(new daum.maps.LatLng(orgRealPos.lat, orgRealPos.lng));
+    }
+
     return {
       init: init,
       getCurPosition: function() {return curRealPos;},
       getAddress: function() {return address;},
       getMapImage: getMapImage,
       addMarker: addMarker,
-      deleteMarker: deleteMarker
+      deleteMarker: deleteMarker,
+      relayout: relayout,
+      setCenterToCurPosition: setCenter
     };
   });
