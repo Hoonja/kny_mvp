@@ -261,18 +261,35 @@ angular.module('KNY.services', [])
 
     function addImage(img) {
       images.push(img);
-      //$scope.$apply(function() {images.push(img);});
     }
 
     function resetImage() {
       images = [];
-      //$scope.$apply(function(){images.push(img);});
     }
 
     return {
       storeImage: addImage,
       images: getImages,
       resetImage: resetImage
+    };
+  })
+
+  .factory('StorageService', function() {
+    function getData(key) {
+      var datum = window.localStorage.getItem(key);
+      if (datum) {
+        return JSON.parse(datum);
+      }
+      return null;
+    }
+
+    function addData(key, value) {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    }
+
+    return {
+      getData: getData,
+      addData: addData
     };
   })
 
@@ -318,17 +335,42 @@ angular.module('KNY.services', [])
 
           $cordovaCamera.getPicture(options)
             .then(function (imageUrl) {
-              var name = imageUrl.substr(imageUrl.lastIndexOf('/') + 1);
-              var namePath = imageUrl.substr(0, imageUrl.lastIndexOf('/') + 1);
-              var newName = makeid() + name;
-              $cordovaFile.copyFile(namePath, name, cordova.file.dataDirectory, newName)
-                .then(function (info) {
-                  console.log('FilePath : ' + cordova.file.dataDirectory + newName);
-                  CacheService.storeImage(cordova.file.dataDirectory + newName);
-                  resolve();
-                }, function (e) {
-                  reject();
+              if (imageUrl.indexOf('content:') >= 0 && ionic.Platform.isAndroid()) {
+                window.FilePath.resolveNativePath(imageUrl, function(resolved) {
+                  console.log('resolveNativePath is success : ' + JSON.stringify(resolved));
+                  var resolvedUrl = 'file://' + resolved;
+
+                  var name = resolvedUrl.substr(resolvedUrl.lastIndexOf('/') + 1);
+                  var namePath = resolvedUrl.substr(0, resolvedUrl.lastIndexOf('/') + 1);
+                  var newName = makeid() + name;
+                  console.log('Resolved FileName : ' + name);
+                  console.log('Resolved Path : ' + namePath);
+
+                  $cordovaFile.copyFile(namePath, name, cordova.file.dataDirectory, newName)
+                    .then(function (info) {
+                      console.log('FilePath : ' + cordova.file.dataDirectory + newName);
+                      CacheService.storeImage(cordova.file.dataDirectory + newName);
+                      resolve();
+                    }, function (e) {
+                      reject();
+                    });
+
+                }, function(error) {
+                  console.error('resolveNativePath Error : ' + JSON.stringify(error));
                 });
+              } else {
+                var name = imageUrl.substr(imageUrl.lastIndexOf('/') + 1);
+                var namePath = imageUrl.substr(0, imageUrl.lastIndexOf('/') + 1);
+                var newName = makeid() + name;
+                $cordovaFile.copyFile(namePath, name, cordova.file.dataDirectory, newName)
+                  .then(function (info) {
+                    console.log('FilePath : ' + cordova.file.dataDirectory + newName);
+                    CacheService.storeImage(cordova.file.dataDirectory + newName);
+                    resolve();
+                  }, function (e) {
+                    reject();
+                  });
+              }
             });
         }else {
           //CacheService.storeImage(TestPlacesSet[Math.floor(Math.random()*TestPlacesSet.length)].imageURI);
@@ -342,42 +384,57 @@ angular.module('KNY.services', [])
       handleMediaDialog: saveMedia
     }
   })
-  .factory('MapService', function($ionicLoading) {
+
+  .factory('GoogleMapService', function($ionicLoading, $q) {
     var curRealPos = {lat:0, lng:0};
-    var map;
+    var orgRealPos = {lat:0, lng:0};
+    var map = {};
     var address;
 
-    function init(map_id, showBookmarkEntryUI) {
-      // 현재 위치 구하기
-      if (navigator.geolocation) {
-        $ionicLoading.show({
-          content: 'Getting current location...',
-          noBackdrop: true
-        });
-        navigator.geolocation.getCurrentPosition(function(position) {
-          curRealPos = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          };
-          initMapSetting(map_id, showBookmarkEntryUI);
-        }, function() {
-          handleLocationError(true);
-          $ionicLoading.hide();
+    function init(map_id, useBookmarkPin, showBookmarkEntryUI) {
+      return $q(function(resolve, reject) {
+        // 현재 위치 구하기
+        if (navigator.geolocation) {
+          $ionicLoading.show({
+            content: 'Getting current location...',
+            noBackdrop: true
+          });
+          navigator.geolocation.getCurrentPosition(function(position) {
+            curRealPos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            orgRealPos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+            };
+            console.info('Original position is (' + orgRealPos.lat + ', ' + orgRealPos.lng + ').');
+            initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI);
+            resolve();
+          }, function() {
+            handleLocationError(true);
+            $ionicLoading.hide();
 
-          // 우리 집 좌표로 설정 -_-
-          curRealPos = {
-            lat: 37.389282,
-            lng: 127.094940
-          };
-          initMapSetting();
-        });
-
-      } else {
-        handleLocationError(false);  // Browser doesn't support Geolocation
-      }
+            // 우리 사무실 좌표로 설정 -_-
+            curRealPos = {
+              lat: 37.403425,
+              lng: 127.105783
+            };
+            orgRealPos = {
+              lat: 37.403425,
+              lng: 127.105783
+            };
+            initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI);
+            resolve();
+          });
+        } else {
+          handleLocationError(false);  // Browser doesn't support Geolocation
+          reject();
+        }
+      });
     }
 
-    function initMapSetting(map_id, showBookmarkEntryUI) {
+    function initMapSetting(map_id, useBookmarkPin, showBookmarkEntryUI) {
       var mapOptions = {
         center: curRealPos,
         zoom: 18,
@@ -389,38 +446,43 @@ angular.module('KNY.services', [])
           position: google.maps.ControlPosition.BOTTOM_LEFT
         }
       };
-      map = new google.maps.Map(document.getElementById(map_id), mapOptions);
-
-      map.setCenter(new google.maps.LatLng(curRealPos.lat, curRealPos.lng));
+      map[map_id] = new google.maps.Map(document.getElementById(map_id), mapOptions);
       getAddress();
-      console.log('[SUCCESS] Real position is (' + curRealPos.lat + ', ' + curRealPos.lng + ').');
-      console.log(getMapImage()); // Test
       $ionicLoading.hide();
 
-      var marker = new google.maps.Marker({
-        position: curRealPos,
-        map: map,
-        animation: google.maps.Animation.DROP,
-        draggable: true
-      });
+      if (useBookmarkPin == true) {
+        var marker = new google.maps.Marker({
+          position: curRealPos,
+          map: map[map_id],
+          animation: google.maps.Animation.DROP,
+          clickable: true,
+          draggable: true
+        });
 
-      // marker의 드래그 이벤트가 끝나면 센터를 재조정하고 위치 정보를 남긴다
-      google.maps.event.addListener(marker, 'dragend', function() {
-        var marker_pos = marker.getPosition();
-        map.setCenter(marker_pos);
-        setCurPosition(marker_pos);
-      });
+        // marker의 드래그 이벤트가 끝나면 센터를 재조정하고 위치 정보를 남긴다
+        google.maps.event.addListener(marker, 'dragend', function() {
+          var marker_pos = marker.getPosition();
+          map[map_id].setCenter(marker_pos);
+          setCurPosition(marker_pos);
+        });
 
-      // 마커를 터치하면 저장을 위한 액션시트 창이 열린다
-      google.maps.event.addListener(marker, 'click', showBookmarkEntryUI);
+        // 마커를 터치하면 저장을 위한 액션시트 창이 열린다
+        google.maps.event.addListener(marker, 'click', showBookmarkEntryUI);
 
-      // 지도를 panning 할 때 그에 따라 마커의 위치를 바꾸어 센터에 자리하게 한다
-      google.maps.event.addListener(map, 'center_changed', function() {
-        var center = map.getCenter();
-        console.log('[Event(map:center_changed] The changed coordinate of map_center is ' + center + '.');
-        marker.setPosition(center);
-        setCurPosition(center);
-      });
+        // 지도를 panning 할 때 그에 따라 마커의 위치를 바꾸어 센터에 자리하게 한다
+        google.maps.event.addListener(map[map_id], 'dragend', function () {
+          var center = map[map_id].getCenter();
+          console.log('[Event(map:dragend] The changed coordinate of map_center is ' + center + '.');
+          marker.setPosition(center);
+          setCurPosition(center);
+        });
+        google.maps.event.addListener(map[map_id], 'center_changed', function() {
+          var center = map[map_id].getCenter();
+          console.log('[Event(map:center_changed] The changed coordinate of map_center is ' + center + '.');
+          marker.setPosition(center);
+          setCurPosition(center);
+        });
+      }
     }
 
     function handleLocationError(browserHasGeolocation) {
@@ -430,26 +492,28 @@ angular.module('KNY.services', [])
     function setCurPosition(pos) {
       curRealPos.lat = pos.lat();
       curRealPos.lng = pos.lng();
+      getAddress();
       console.log('[Function] Current position is changed(' + pos + ').');
     }
 
     function getAddress() {
       var geocoder = new google.maps.Geocoder;
       console.log('curRealPos : ' + JSON.stringify(curRealPos));
-      geocoder.geocode({'location' : curRealPos}, function(results, status) {
-        if (status === google.maps.GeocoderStatus.OK) {
-          if (results[1]) {
-            address = results[1].formatted_address;
-            console.info('Current Address is ' + address + '.');
+      geocoder.geocode({'location' : curRealPos},
+        function(results, status) {
+          if (status === google.maps.GeocoderStatus.OK) {
+            if (results[1]) {
+              address = results[1].formatted_address;
+              console.info('Current Address is ' + address + '.');
+            } else {
+              console.warn('Geocoder results are not found.');
+              address = status;
+            }
           } else {
-            console.warn('Geocoder results are not found.');
+            console.error('Geocoder failed due to: ' + status);
             address = status;
           }
-        } else {
-          console.error('Geocoder failed due to: ' + status);
-          address = status;
-        }
-      });
+        });
     }
 
     function getMapImage() {
@@ -459,11 +523,71 @@ angular.module('KNY.services', [])
         curRealPos.lat + ',' + curRealPos.lng + '&key=AIzaSyDkuFga8fr1c4PjzSAiHaBWo26zvQbtxB8';
     }
 
+    function addMarker(map_id, lat, lng, title, address, id) {
+      var image= {
+        url: 'img/marker.png',
+        size: new google.maps.Size(128, 128),
+        scaledSize: new google.maps.Size(32, 32),
+        origin: new google.maps.Point(0, 0),
+        anchor: new google.maps.Point(16, 32)
+      };
+      var shape = {
+        coords: [1, 1, 1, 31, 31, 31, 31, 1],
+        type: 'poly'
+      };
+
+      var markerPosition = {lat: lat, lng: lng};
+
+      var marker = new google.maps.Marker({
+        position: markerPosition,
+        map: map[map_id],
+        clickable: true,
+        draggable: false,
+        animation: google.maps.Animation.DROP,
+        icon: image,
+        shape: shape,
+        title: title
+      });
+
+      // info window 등록
+      var iwContent = '<div style="padding:5px;">'
+        + '<h3>' + title + '</h3><h5>' + address + '</h5>'
+        + '<a href="#/tab/place/' + id + '">상세보기</a> </div>';
+      var iw = new google.maps.InfoWindow({
+        //removable: true,   // !!!
+        content: iwContent
+      });
+      daum.maps.event.addListener(marker, 'click', function() {
+        iw.open(map[map_id], marker);
+      });
+
+
+      return marker;
+    }
+
+    function deleteMarker(marker) {
+      marker.setMap(null);
+    }
+
+    function relayout(map_id) {
+      console.debug('map.relayout is called. But, google maps does not support this method.');
+    }
+
+    function setCenter(map_id) {
+      console.log('setCenter map_id: ' + map_id);
+      console.log('setCenter : ' + map[map_id]);
+      map[map_id].setCenter(new daum.maps.LatLng(orgRealPos.lat, orgRealPos.lng));
+    }
+
     return {
       init: init,
       getCurPosition: function() {return curRealPos;},
       getAddress: function() {return address;},
-      getMapImage: getMapImage
+      getMapImage: getMapImage,
+      addMarker: addMarker,
+      deleteMarker: deleteMarker,
+      relayout: relayout,
+      setCenterToCurPosition: setCenter
     };
   })
 
@@ -658,4 +782,47 @@ angular.module('KNY.services', [])
       relayout: relayout,
       setCenterToCurPosition: setCenter
     };
+  })
+
+  .factory('MapService', function(GoogleMapService, DaumMapService, StorageService) {
+    var GOOGLE_MAP = 0;
+    var DAUM_MAP = 1;
+    var serviceType = null;
+    var storageKey = 'map_type';
+
+    function setMapService(type) {
+      serviceType = type;
+      StorageService.addData(storageKey, type);
+      console.debug('Map type [' + serviceType + '] is set.');
+    }
+
+    function getMapService() {
+      serviceType = StorageService.getData(storageKey);
+      if (serviceType == null) {
+        serviceType = getMapServiceType();
+      }
+
+      if (serviceType != GOOGLE_MAP) {
+        return DaumMapService;
+      } else {
+        return GoogleMapService;
+      }
+    }
+
+    function getMapServiceType() {
+      serviceType = StorageService.getData(storageKey);
+      if (serviceType == null) {
+        console.warn('The saved map info is null, so default type will be returned.');
+        serviceType = DAUM_MAP;
+        StorageService.addData(storageKey, serviceType);
+      }
+      console.debug('The gotten map type is ' + serviceType + '.');
+      return serviceType;
+    }
+
+    return {
+      setMapService: setMapService,
+      getMapService: getMapService,
+      getMapServiceType: getMapServiceType
+    }
   });

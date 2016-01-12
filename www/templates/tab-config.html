@@ -2,6 +2,11 @@
   <ion-content>
     <ion-list>
       <ion-item class="item-divider item-button-right">
+        사용할 지
+      </ion-item>
+      <ion-radio ng-model="typeMap" ng-value="0" ng-change="selectMap(0)">Google Map</ion-radio>
+      <ion-radio ng-model="typeMap" ng-value="1" ng-change="selectMap(1)">Daum Map</ion-radio>
+      <ion-item class="item-divider item-button-right">
         DB Summary
       </ion-item>
       <button class="button button-block button-outline button-assertive  ion-ios-paper-outline" ng-click="getSummary()">

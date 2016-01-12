@@ -4,7 +4,13 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('ConfigCtrl', function($scope, $ionicModal, $cordovaSQLite, PlaceDB) {
+  .controller('ConfigCtrl', function($scope, $ionicModal, $cordovaSQLite, PlaceDB, MapService) {
+    $scope.typeMap = MapService.getMapServiceType();
+    $scope.selectMap = function(value) {
+      MapService.setMapService(value);
+      console.log(value + " map is selected.(" + typeof(value) + ")");
+    };
+
     $scope.paths = [];
     $scope.file_cnt = 0;
     $scope.getSummary = function() {

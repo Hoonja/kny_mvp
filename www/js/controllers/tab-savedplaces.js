@@ -4,8 +4,8 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('SavedPlacesCtrl', function($scope, $ionicPlatform, $stateParams, $cordovaSQLite, $ionicActionSheet, PlaceDB, DaumMapService) {
-    var MapService = DaumMapService;
+  .controller('SavedPlacesCtrl', function($scope, $ionicPlatform, $stateParams, $cordovaSQLite, $ionicActionSheet, PlaceDB, MapService) {
+    var MapService = MapService.getMapService();
 
     $scope.load = function() {
       $scope.places = [];

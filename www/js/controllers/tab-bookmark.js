@@ -4,8 +4,8 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('BookmarkCtrl', function($scope, $ionicPlatform, $ionicActionSheet, $ionicModal, $cordovaCamera, $cordovaSQLite, PrivatePolicy, PlaceDB, CacheService, ImageService, DaumMapService) {
-    var MapService = DaumMapService;
+  .controller('BookmarkCtrl', function($scope, $ionicPlatform, $ionicActionSheet, $ionicModal, $cordovaCamera, $cordovaSQLite, PrivatePolicy, PlaceDB, CacheService, ImageService, MapService) {
+    var MapService = MapService.getMapService();
     $scope.showBookmarkEntryUI = function() {
       // Show the action sheet
       $ionicActionSheet.show({
