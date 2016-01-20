@@ -9,9 +9,11 @@
       <ion-item class="item-divider item-button-right">
         DB Summary
       </ion-item>
-      <button class="button button-block button-outline button-assertive  ion-ios-paper-outline" ng-click="getSummary()">
-        Load Info
-      </button>
+      <ion-item>
+        <button class="button button-block button-outline button-assertive  ion-ios-paper-outline" ng-click="getSummary()">
+          Load Info
+        </button>
+      </ion-item>
       <ion-list>
         <ion-item>Places: {{places_cnt}}</ion-item>
         <ion-item>Images: {{images_cnt}}</ion-item>
@@ -34,11 +36,27 @@
       <ion-item class="item-divider">
         Image Path
       </ion-item>
-      <button class="button button-block button-outline button-assertive  ion-ios-paper-outline" ng-click="getImagePaths()">
-        Get Image Paths
-      </button>
+      <ion-item>
+        <button class="button button-block button-outline button-assertive  ion-ios-paper-outline" ng-click="getImagePaths()">
+          Get Image Paths
+        </button>
+      </ion-item>
       <ion-item>{{file_cnt}} images are exist.</ion-item>
       <ion-item ng-repeat="path in paths" ng-click="showImages($index)">{{path}}</ion-item>
+      <ion-item class="item-divider">
+        File Upload Test
+      </ion-item>
+      <ion-item>
+        <input type="file" id="placeImage"/>
+      </ion-item>
+      <ion-item>
+        <button class="button button-block button-outline button-assertive  ion-ios-paper-outline" ng-click="uploadFile()">
+          Upload File
+        </button>
+      </ion-item>
+      <ion-item>
+        {{responseText}}
+      </ion-item>
     </ion-list>
   </ion-content>
 </ion-view>

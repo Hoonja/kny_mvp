@@ -5,17 +5,31 @@
       </button>
       <img ng-repeat="image in images track by $index" class="image-list-thumb" ng-show="image !== undefined" ng-src="{{ image }}">
     </ion-scroll>
-    <label class="item item-input">
-      <span class="input-label">Place</span>
-      <input type="text" ng-model="contents_for_save.name" placeholder="어디인가요?" ></input>
-    </label>
-    <label class="item item-input">
-      <span class="input-label">전화번호</span>
-      <input type="text" ng-model="contents_for_save.telephone_no" ></input>
-    </label>
+    <div class="list">
+      <div class="item item-input-inset">
+        <label class="item-input-wrapper">
+          <input type="text" ng-model="contents_for_save.name" placeholder="장소 이름을 남겨주세요." />
+        </label>
+        <button class="button button-positive button-small" ng-click="estimatePlaces()">추정</button>
+      </div>
+      <div class="item item-input-inset">
+        <span class="input-label">
+          연락처
+        </span>
+        <label class="item-input-wrapper">
+          <input type="text" ng-model="contents_for_save.telephone_no" placeholder="전화번호를 입력하세요." />
+        </label>
+      </div>
+      <div class="item item-input-inset">
+        <span class="input-label">
+          주소
+        </span>
+        {{ contents_for_save.address }}
+      </div>
+    </div>
     <label class="item item-input item-stacked-label">
       <span class="input-label">MEMO</span>
-      <textarea ng-model="contents_for_save.memo" rows="4" placeholder="이 곳을 기억하기 위한 메모를 남겨 주세요" ></textarea>
+      <textarea ng-model="contents_for_save.memo" rows="4" placeholder="간단한 메모를 남겨 주세요" ></textarea>
     </label>
     <label class="item-input item-select">
       <span class="input-label">
@@ -34,12 +48,10 @@
         취소
       </button>
     </div>
-
+    <br>
     <ion-list>
-      <ion-item class="item-divider">디버깅용 정보</ion-item>
-      <ion-item>address : {{ contents_for_save.address }}</ion-item>
-      <ion-item>lat : {{ contents_for_save.curPos.lat }}</ion-item>
-      <ion-item>lng : {{ contents_for_save.curPos.lng }}</ion-item>
+      <ion-item class="item-divider">Debug Info.</ion-item>
+      <ion-item>위도 : {{ contents_for_save.curPos.lat }}, 경도 : {{ contents_for_save.curPos.lng }}</ion-item>
     </ion-list>
   </ion-content>
 </ion-view>

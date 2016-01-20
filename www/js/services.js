@@ -335,6 +335,7 @@ angular.module('KNY.services', [])
 
           $cordovaCamera.getPicture(options)
             .then(function (imageUrl) {
+              console.log("imageUrl: " + imageUrl);
               if (imageUrl.indexOf('content:') >= 0 && ionic.Platform.isAndroid()) {
                 window.FilePath.resolveNativePath(imageUrl, function(resolved) {
                   console.log('resolveNativePath is success : ' + JSON.stringify(resolved));
@@ -501,6 +502,8 @@ angular.module('KNY.services', [])
       console.log('curRealPos : ' + JSON.stringify(curRealPos));
       geocoder.geocode({'location' : curRealPos},
         function(results, status) {
+          console.log('results is');
+          console.dir(results);
           if (status === google.maps.GeocoderStatus.OK) {
             if (results[1]) {
               address = results[1].formatted_address;
@@ -697,12 +700,28 @@ angular.module('KNY.services', [])
 
     function getAddress() {
       var geocoder = new daum.maps.services.Geocoder();
-      geocoder.coord2addr(
+      /*geocoder.coord2addr(
         new daum.maps.LatLng(curRealPos.lat, curRealPos.lng),
         function(status, result) {
           if (status === daum.maps.services.Status.OK) {
             if (result[0]) {
               address = result[0].fullName;
+              console.info('Current Address is ' + address + '.');
+            } else {
+              console.warn('Geocoder results are not found.');
+              address = status;
+            }
+          } else {
+            console.error('Geocoder failed due to: ' + status);
+            address = status;
+          }
+        });*/
+      geocoder.coord2detailaddr(
+        new daum.maps.LatLng(curRealPos.lat, curRealPos.lng),
+        function(status, result) {
+          if (status === daum.maps.services.Status.OK) {
+            if (result[0]) {
+              address = result[0].jibunAddress.name;
               console.info('Current Address is ' + address + '.');
             } else {
               console.warn('Geocoder results are not found.');
@@ -825,4 +844,22 @@ angular.module('KNY.services', [])
       getMapService: getMapService,
       getMapServiceType: getMapServiceType
     }
+  })
+  .factory('FileUploader', function($cordovaFileTransfer) {
+    function uploadImage(url, file, options) {
+      /*
+        [options]
+        fileKey     string	The name of the form element
+        fileName	  string	The name to use when saving the file on the server
+        httpMethod	string	The HTTP method to use
+        mimeType	  string	The mime type of the data to upload
+        params	    object	The set of key pairs to pass in the request
+        headers     object  The map of header name values
+       */
+      return $cordovaFileTransfer.upload(url, file, options);
+    }
+
+    return {
+      estimatePlaces : uploadImage
+    };
   });

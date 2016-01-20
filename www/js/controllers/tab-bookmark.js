@@ -4,7 +4,7 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('BookmarkCtrl', function($scope, $ionicPlatform, $ionicActionSheet, $ionicModal, $cordovaCamera, $cordovaSQLite, PrivatePolicy, PlaceDB, CacheService, ImageService, MapService) {
+  .controller('BookmarkCtrl', function($scope, $ionicPlatform, $ionicActionSheet, $ionicModal, $cordovaCamera, $cordovaSQLite, $http, PrivatePolicy, PlaceDB, CacheService, ImageService, MapService, FileUploader) {
     var MapService = MapService.getMapService();
     $scope.showBookmarkEntryUI = function() {
       // Show the action sheet
@@ -43,8 +43,9 @@ angular.module('KNY.controllers')
           $scope.policies = PrivatePolicy.all();
           $scope.contents_for_save = {
             name: '',
+            estimation_place: '',
             address: MapService.getAddress(),
-            telephone_no: '010-1234-5678',
+            telephone_no: '',
             memo: '',
             imgURI: '',
             curPos: {
@@ -96,6 +97,35 @@ angular.module('KNY.controllers')
     $scope.selectPolicy = function(selectedPolicy) {
       PrivatePolicy.select(selectedPolicy);
       console.log("Selected policy : " + selectedPolicy);
+    }
+
+    $scope.estimatePlaces = function() {
+      var options = {
+        fileKey : 'docfile',
+        fileName: 'place_image',
+        httpMethod: 'POST',
+        params: {
+          resulttype: 'json',
+          newaddr: '',
+          oldaddr: $scope.contents_for_save.address,
+          latitude: $scope.contents_for_save.curPos.lat,
+          longitude: $scope.contents_for_save.curPos.lng
+        }
+      };
+      console.debug('options is');
+      console.dir(options);
+      FileUploader.estimatePlaces('http://104.199.132.84/myapp/list/', $scope.images[0], options)
+        .then(function(result) {
+          console.log('File upload is success.');
+          console.log(result.bytesSent + ' bytes is sent.');
+          console.log('responseCode : ' + result.responseCode);
+          console.log(result.response);
+        }, function(err) {
+          console.error('File upload failed.');
+          console.dir(err);
+        }, function(progress) {
+
+        });
     }
 
     $scope.savePlaceInfo = function() {

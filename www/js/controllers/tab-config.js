@@ -4,7 +4,7 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('ConfigCtrl', function($scope, $ionicModal, $cordovaSQLite, PlaceDB, MapService) {
+  .controller('ConfigCtrl', function($scope, $ionicModal, $cordovaSQLite, $http, PlaceDB, MapService) {
     $scope.typeMap = MapService.getMapServiceType();
     $scope.selectMap = function(value) {
       MapService.setMapService(value);
@@ -91,26 +91,59 @@ angular.module('KNY.controllers')
         }, function(err) {
           console.error('Selecting imageURI is failed.' + JSON.stringify(err));
         });
-
-      $scope.showImages = function(index) {
-        $scope.activeSlide = index;
-        $scope.showModal('templates/image-popover.html');
-      };
-
-      $scope.showModal = function(templateUrl) {
-        $ionicModal.fromTemplateUrl(templateUrl, {
-            scope : $scope,
-            animation : 'slide-in-up'
-          })
-          .then(function(modal) {
-            $scope.modal = modal;
-            $scope.modal.show();
-          });
-      };
-
-      $scope.closeModal = function() {
-        $scope.modal.hide();
-        $scope.modal.remove();
-      };
     }
+
+    $scope.showImages = function(index) {
+      $scope.activeSlide = index;
+      $scope.showModal('templates/image-popover.html');
+    };
+
+    $scope.showModal = function(templateUrl) {
+      $ionicModal.fromTemplateUrl(templateUrl, {
+          scope : $scope,
+          animation : 'slide-in-up'
+        })
+        .then(function(modal) {
+          $scope.modal = modal;
+          $scope.modal.show();
+        });
+    };
+
+    $scope.closeModal = function() {
+      $scope.modal.hide();
+      $scope.modal.remove();
+    };
+
+    $scope.uploadFile = function() {
+      var placeImage = document.getElementById('placeImage').files[0];
+      console.log('placeImage is');
+      console.dir(placeImage);
+      var fd = new FormData();
+      fd.append('docfile', placeImage);
+      fd.append('resulttype', 'json');
+      fd.append('newaddr', 'json');
+      fd.append('oldaddr', 'json');
+      fd.append('latitude', 'json');
+      fd.append('longitude', 'json');
+
+      $http.post('/myapp/list/', fd, {
+          transformRequest: angular.identity,
+          headers: {
+            'Content-Type': undefined,
+            'X-CSRFToken' : 'MLbLL61DzBdZnHAqqe2xGgxD6JG8NGbL'  // localhost
+            //'X-CSRFToken' : 'cfgRUiJqN5usZGkXkeEO081iOaphM3Ox'    // gulby server
+          }
+        })
+        .success(function(response) {
+          console.log(response);
+          var list = response;
+          console.log('Response is');
+          console.dir(list);
+          $scope.responseText = response;
+        })
+        .error(function(response) {
+          $scope.responseText = response;
+          console.log(response);
+        });
+    };
   });

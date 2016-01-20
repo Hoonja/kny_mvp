@@ -5,7 +5,7 @@
 // the 2nd parameter is an array of 'requires'
 "use strict";
 
-angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services'])
+angular.module('KNY', ['ionic', 'ngCordova', 'KNY.controllers', 'KNY.services', 'KNY.directives'])
 
   .run(function($ionicPlatform, $rootScope, $cordovaSQLite, PlaceDB) {
     $ionicPlatform.ready(function() {

@@ -27,7 +27,9 @@
       "locator": "https://github.com/wymsee/cordova-imagePicker.git",
       "id": "com.synconset.imagepicker"
     },
-    "cordova-plugin-file"
+    "cordova-plugin-file",
+    "cordova-plugin-file-transfer",
+    "org.apache.cordova.file-transfer"
   ],
   "cordovaPlatforms": [
     "ios",
