@@ -4,7 +4,7 @@
 "use strict";
 
 angular.module('KNY.controllers')
-  .controller('BookmarkCtrl', function($scope, $ionicPlatform, $ionicActionSheet, $ionicModal, $cordovaCamera, $cordovaSQLite, $http, PrivatePolicy, PlaceDB, CacheService, ImageService, MapService, FileUploader) {
+  .controller('BookmarkCtrl', function($scope, $ionicPlatform, $ionicActionSheet, $ionicModal, $cordovaCamera, $cordovaSQLite, $ionicLoading, PrivatePolicy, PlaceDB, CacheService, ImageService, MapService, FileUploader, SERVER_ADDR) {
     var MapService = MapService.getMapService();
     $scope.showBookmarkEntryUI = function() {
       // Show the action sheet
@@ -100,32 +100,71 @@ angular.module('KNY.controllers')
     }
 
     $scope.estimatePlaces = function() {
-      var options = {
-        fileKey : 'docfile',
-        fileName: 'place_image',
-        httpMethod: 'POST',
-        params: {
-          resulttype: 'json',
-          newaddr: '',
-          oldaddr: $scope.contents_for_save.address,
-          latitude: $scope.contents_for_save.curPos.lat,
-          longitude: $scope.contents_for_save.curPos.lng
-        }
-      };
-      console.debug('options is');
-      console.dir(options);
-      FileUploader.estimatePlaces('http://104.199.132.84/myapp/list/', $scope.images[0], options)
-        .then(function(result) {
-          console.log('File upload is success.');
-          console.log(result.bytesSent + ' bytes is sent.');
-          console.log('responseCode : ' + result.responseCode);
-          console.log(result.response);
-        }, function(err) {
-          console.error('File upload failed.');
-          console.dir(err);
-        }, function(progress) {
-
+      if (ionic.Platform.isIOS() || ionic.Platform.isAndroid()) {
+        var options = {
+          fileKey: 'docfile',
+          fileName: 'place_image',
+          httpMethod: 'POST',
+          params: {
+            resulttype: 'json',
+            newaddr: $scope.contents_for_save.address,
+            oldaddr: '',
+            latitude: $scope.contents_for_save.curPos.lat,
+            longitude: $scope.contents_for_save.curPos.lng
+          }
+        };
+        console.debug('options is');
+        console.dir(options);
+        $ionicLoading.show({
+          content: 'Processing..',
+          noBackdrop: true
         });
+        FileUploader.estimatePlaces(SERVER_ADDR.pp, $scope.images[0], options)
+          .then(function (result) {
+            console.log('File upload is success(' + result.bytesSent + ' bytes is sent).');
+            console.dir(result.response);
+            $scope.placesProposed = JSON.parse(result.response);
+            $ionicLoading.hide();
+            $ionicModal.fromTemplateUrl('templates/plist-popover.html', {
+                scope: $scope,
+                animation: 'slide-in-up'
+              })
+              .then(function (modal) {
+                $scope.plistModal = modal;
+                $scope.plistModal.show();
+              });
+          }, function (err) {
+            $ionicLoading.hide();
+            console.error('File upload failed.');
+            console.dir(err);
+          }, function (progress) {
+
+          });
+      }
+      // For test in browser
+      else {
+        console.info('This platform does not support FileTransfer');
+        $ionicModal.fromTemplateUrl('templates/plist-popover.html', {
+            scope: $scope,
+            animation: 'slide-in-up'
+          })
+          .then(function (modal) {
+            $scope.placesProposed = JSON.parse('{\"top3\": [\"\\ud0a4\\uc988\\uc2a4\\ud50c\\ub798\\uc26c\", \"0.040563\"], \"top2\": [\"\\uc9c4\\uc9c4\\ubc18\\uc0c1\", \"0.061957\"], \"top1\": [\"\\ubc45\\uc2a4\\ud5e4\\uc5b4\", \"0.778192\"]}');
+            console.dir($scope.placesProposed);
+            $scope.plistModal = modal;
+            $scope.plistModal.show();
+          });
+      }
+    };
+
+    $scope.closePlistModal = function() {
+      $scope.plistModal.hide();
+      $scope.plistModal.remove();
+    };
+
+    $scope.setPlaceByProposing = function(name) {
+      $scope.contents_for_save.name = name;
+      $scope.closePlistModal();
     }
 
     $scope.savePlaceInfo = function() {

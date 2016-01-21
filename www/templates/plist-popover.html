@@ -1,0 +1,16 @@
+<div class="modal image-modal transparent" ng-click="closePlistModal()">
+  <ion-list>
+    <ion-item ng-click="setPlaceByProposing(placesProposed.top1[0])">
+      {{placesProposed.top1[0]}} ({{placesProposed.top1[1]}})
+    </ion-item>
+    <ion-item ng-click="setPlaceByProposing(placesProposed.top2[0])">
+      {{placesProposed.top2[0]}} ({{placesProposed.top2[1]}})
+    </ion-item>
+    <ion-item ng-click="setPlaceByProposing(placesProposed.top3[0])">
+      {{placesProposed.top3[0]}} ({{placesProposed.top3[1]}})
+    </ion-item>
+    <ion-item ng-click="setPlaceByProposing('')">
+      기타
+    </ion-item>
+  </ion-list>
+</div>
